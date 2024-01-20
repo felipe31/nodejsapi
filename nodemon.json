@@ -1,5 +1,5 @@
 {
-  "watch": ["src"],
+  "watch": ["src", "tests"],
   "ext": "ts,json",
-  "exec": "yarn tsc && node ./dist/server.js"
+  "exec": "yarn tsc && node ./dist/src/server.js"
 }

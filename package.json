@@ -10,7 +10,20 @@
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.11",
+    "@types/node-fetch": "^2.6.11",
+    "jest": "^29.7.0",
+    "node-fetch": "2",
     "nodemon": "^3.0.3",
     "typescript": "^5.3.3"
+  },
+  "scripts": {
+    "dev": "nodemon",
+    "test": "jest"
+  },
+  "jest": {
+    "testMatch": [
+      "**/dist/tests/**/*test.js"
+    ]
   }
 }

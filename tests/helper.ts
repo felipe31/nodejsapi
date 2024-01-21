@@ -3,8 +3,8 @@ import fetch, { RequestInit, Response } from "node-fetch";
 export async function fetchHelper(
   url: string,
   data?: any,
-  method: "GET" | "POST" | "PATCH" | "PUT" | "DELETE" = "GET",
-): Promise<JSON> {
+  method: "GET" | "POST" | "PATCH" | "PUT" | "DELETE" = "GET"
+): Promise<unknown> {
   const reqObj: RequestInit = {
     method,
     headers: {
@@ -16,8 +16,8 @@ export async function fetchHelper(
   }
 
   return fetch(url, reqObj)
-    .then((e: Response) => e.json() as Promise<JSON>)
-    .then((e: JSON): JSON => {
+    .then((e: Response) => e.json())
+    .then((e: unknown) => {
       return e;
     });
 }

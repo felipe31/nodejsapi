@@ -2,7 +2,7 @@ import { Model, Sequelize, INTEGER, BOOLEAN, STRING } from "sequelize";
 
 export const sequelize = new Sequelize({
   dialect: "sqlite",
-  storage: "./database.sqlite3",
+  storage: "./db/database.sqlite3",
 
   define: {
     freezeTableName: true,

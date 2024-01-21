@@ -1,9 +1,10 @@
+import "dotenv/config";
 import { Model, Sequelize, INTEGER, BOOLEAN, STRING } from "sequelize";
 
 export const sequelize = new Sequelize({
   dialect: "sqlite",
   storage: "./db/database.sqlite3",
-
+  logging: process.env.SQL_LOG === "true",
   define: {
     freezeTableName: true,
   },
@@ -18,12 +19,13 @@ Producer.init(
     name: {
       type: STRING,
       allowNull: false,
+      unique: true,
     },
   },
   {
     sequelize,
     modelName: "Producer",
-  },
+  }
 );
 
 export class Movie extends Model {
@@ -36,6 +38,7 @@ Movie.init(
     name: {
       type: STRING,
       allowNull: false,
+      unique: true,
     },
     winner: {
       type: BOOLEAN,
@@ -48,7 +51,7 @@ Movie.init(
   {
     sequelize,
     modelName: "Movie",
-  },
+  }
 );
 
 export class Studio extends Model {
@@ -60,12 +63,13 @@ Studio.init(
     name: {
       type: STRING,
       allowNull: false,
+      unique: true,
     },
   },
   {
     sequelize,
     modelName: "Studio",
-  },
+  }
 );
 
 Movie.belongsToMany(Producer, { through: "MovieProducer" });

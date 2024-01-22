@@ -2,58 +2,76 @@ import { Model, Optional, Sequelize, Transaction } from "sequelize";
 import { Movie, Producer, Studio, sequelize } from "./model";
 import { parseCSV } from "./parser";
 
+/**
+ * Create/replace tables according to the model.
+ *
+ * If `path` is provided, parses the data from a .csv file into the database
+ *
+ * @export
+ * @param {string} [path]
+ * @return {*}  {Promise<Sequelize>}
+ */
 export async function initializeDB(path?: string): Promise<Sequelize> {
   // Create tables
   await sequelize.sync({ force: true });
 
-  const rows = await parseCSV(path);
-  for (const row of rows) {
-    // Extract movie
-    let movie = await Movie.findOne({
-      where: {
-        year: +row[0],
-        name: row[1],
-        winner: row[4] === "yes",
-      },
-    });
+  if (path) {
+    const rows = await parseCSV(path);
 
-    if (!movie) {
-      movie = await Movie.create({
-        year: +row[0],
-        name: row[1],
-        winner: row[4] === "yes",
+    for (const row of rows) {
+      const year = +row[0];
+      const name = row[1];
+      const studioString = row[3];
+      const producerString = row[3];
+      const winner = row[4];
+
+      // Extract movie
+      let movie = await Movie.findOne({
+        where: {
+          year,
+          name,
+          winner: winner === "yes",
+        },
       });
-    }
 
-    // Extract producers
-    const producerNames = splitNameString(row[3]);
-
-    const producers: Producer[] = [];
-    for (const name of producerNames) {
-      let producer = await Producer.findOne({ where: { name } });
-
-      if (!producer) {
-        producer = await Producer.create({ name });
+      if (!movie) {
+        movie = await Movie.create({
+          year,
+          name,
+          winner: winner === "yes",
+        });
       }
 
-      producers.push(producer);
-    }
-    await movie.addProducers(producers);
+      // Extract producers
+      const producerNames = splitNameString(producerString);
 
-    // Extract studios
-    const studioNames = splitNameString(row[2]);
+      const producers: Producer[] = [];
+      for (const name of producerNames) {
+        let producer = await Producer.findOne({ where: { name } });
 
-    const studios: Studio[] = [];
-    for (const name of studioNames) {
-      let studio = await Studio.findOne({ where: { name } });
+        if (!producer) {
+          producer = await Producer.create({ name });
+        }
 
-      if (!studio) {
-        studio = await Studio.create({ name });
+        producers.push(producer);
       }
+      await movie.addProducers(producers);
 
-      studios.push(studio);
+      // Extract studios
+      const studioNames = splitNameString(studioString);
+
+      const studios: Studio[] = [];
+      for (const name of studioNames) {
+        let studio = await Studio.findOne({ where: { name } });
+
+        if (!studio) {
+          studio = await Studio.create({ name });
+        }
+
+        studios.push(studio);
+      }
+      await movie.addStudios(studios);
     }
-    await movie.addStudios(studios);
   }
 
   return sequelize;

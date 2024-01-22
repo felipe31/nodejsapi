@@ -1,6 +1,15 @@
 import { parse } from "csv-parse";
 import fs from "fs";
 
+/**
+ * Parse the CSV file in the `path`.
+ *
+ * Returns an array with all rows.
+ *
+ * @export
+ * @param {string} [path]
+ * @return {*}  {Promise<string[][]>}
+ */
 export function parseCSV(path?: string): Promise<string[][]> {
   if (!path || !path.endsWith(".csv")) {
     throw new Error("Invalid CSV path!");

@@ -4,7 +4,6 @@ import { ConsecutiveAward, ConsecutiveAwardGaps } from "./types";
 
 export const routes = Router();
 
-// Temp endpoint
 routes.get("/movies/:id", async (req: Request, res: Response) => {
   const id = req.params.id;
 
@@ -27,8 +26,10 @@ routes.get("/movies/:id", async (req: Request, res: Response) => {
       },
     ],
   });
-
-  res.json({ movie });
+  if (movie) {
+    return res.json({ movie });
+  }
+  res.status(404).json({ message: "Movie not found!" });
 });
 
 routes.get("/consecutive-award-gaps", async (req: Request, res: Response) => {
@@ -50,6 +51,7 @@ routes.get("/consecutive-award-gaps", async (req: Request, res: Response) => {
     const movies = producer.get("Movies") as Movie[];
     if (movies.length === 1) continue;
 
+    // Compare consecutive movies
     for (let i = 0; i < movies.length - 1; i++) {
       const interval =
         (movies[i + 1].get("year") as number) -

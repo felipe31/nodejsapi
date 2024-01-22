@@ -30,4 +30,6 @@ routes.get("/movies/:id", async (req: Request, res: Response) => {
   res.json({ movie });
 });
 
-routes.get("/consecutive-award-gaps", (req: Request, res: Response) => {});
+routes.get("/consecutive-award-gaps", (req: Request, res: Response) => {
+  res.json({});
+});

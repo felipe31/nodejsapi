@@ -1,5 +1,12 @@
 import fetch, { RequestInit, Response } from "node-fetch";
 
+export type ConsecutiveAward = {
+  producer: string;
+  interval: number;
+  previousWin: number;
+  followingWin: number;
+};
+
 export async function fetchHelper(
   url: string,
   data?: any,
@@ -20,4 +27,18 @@ export async function fetchHelper(
     .then((e: unknown) => {
       return e;
     });
+}
+
+export function compareConsecutiveAward(
+  award: ConsecutiveAward,
+  shortest: ConsecutiveAward
+): boolean {
+  return (
+    award &&
+    shortest &&
+    award.followingWin === shortest.followingWin &&
+    award.interval === shortest.interval &&
+    award.previousWin === shortest.previousWin &&
+    award.producer === shortest.producer
+  );
 }

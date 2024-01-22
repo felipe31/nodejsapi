@@ -1,7 +1,7 @@
 {
   "name": "nodejsapi",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/src/server.js",
   "repository": "https://github.com/felipe31/nodejsapi",
   "author": "Felipe Soares <felipe31soares@gmail.com>",
   "license": "MIT",

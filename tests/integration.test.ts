@@ -1,28 +1,26 @@
 import "dotenv/config";
-import {
-  ConsecutiveAward,
-  compareConsecutiveAward,
-  fetchHelper,
-} from "./helper";
+import { compareConsecutiveAward, fetchHelper } from "./helper";
 import * as assert from "assert";
 import { Movie, Producer, Studio, sequelize } from "../src/model";
 import { Model } from "sequelize";
+import { ConsecutiveAward } from "../src/types";
 
 describe("Integration tests", () => {
   const baseURL = `http://localhost:${process.env.PORT}`;
 
+  const toDestroy: Model[] = [];
   beforeAll(async () => {
     await sequelize.sync();
   });
 
   afterAll(async () => {
+    await Promise.all(toDestroy.map(async (row) => await row.destroy()));
     await sequelize.close();
   });
 
   const rand = Math.random();
 
   it("Insert", async () => {
-    const toDestroy: Model[] = [];
     const movie = await Movie.create({
       year: 111,
       name: `Insert test ${rand}`,
@@ -60,7 +58,6 @@ describe("Integration tests", () => {
       },
       "Producer, Studio and Movie rows should exist and be connected"
     );
-    await Promise.all(toDestroy.map(async (row) => await row.destroy()));
   });
 
   it("Delete", async () => {
@@ -118,8 +115,6 @@ describe("Integration tests", () => {
   });
 
   it("Consecutive Awards", async () => {
-    const toDestroy: Model[] = [];
-
     // Longest
     const movieLongest1 = await Movie.create({
       year: 1,
@@ -161,11 +156,18 @@ describe("Integration tests", () => {
     toDestroy.push(movieShortest1);
 
     const movieShortest2 = await Movie.create({
-      year: 1,
+      year: 2,
       name: `MS2 ${rand}`,
       winner: true,
     });
     toDestroy.push(movieShortest2);
+
+    const movieShortest3 = await Movie.create({
+      year: 3,
+      name: `ML3 ${rand}`,
+      winner: true,
+    });
+    toDestroy.push(movieShortest3);
 
     const producerShortest = await Producer.create({
       name: `Shortest gap ${rand}`,
@@ -174,14 +176,24 @@ describe("Integration tests", () => {
 
     await movieShortest1.addProducers([producerShortest]);
     await movieShortest2.addProducers([producerShortest]);
+    await movieShortest3.addProducers([producerShortest]);
 
-    const shortest: ConsecutiveAward = {
+    const shortest1: ConsecutiveAward = {
       producer: producerShortest.get("name") as string,
       interval:
         (movieShortest2.get("year") as number) -
         (movieShortest1.get("year") as number),
       previousWin: movieShortest1.get("year") as number,
       followingWin: movieShortest2.get("year") as number,
+    };
+
+    const shortest2: ConsecutiveAward = {
+      producer: producerShortest.get("name") as string,
+      interval:
+        (movieShortest3.get("year") as number) -
+        (movieShortest2.get("year") as number),
+      previousWin: movieShortest2.get("year") as number,
+      followingWin: movieShortest3.get("year") as number,
     };
 
     // Get endpoint data
@@ -195,10 +207,17 @@ describe("Integration tests", () => {
     assert.ok(resp?.min, "Field min must exist");
 
     assert.equal(
-      resp.min.filter((award) => compareConsecutiveAward(award, shortest))
+      resp.min.filter((award) => compareConsecutiveAward(award, shortest1))
         .length,
       1,
-      "The API should return the shortest consecutive award"
+      "The API should return the shortest1 consecutive award"
+    );
+
+    assert.equal(
+      resp.min.filter((award) => compareConsecutiveAward(award, shortest2))
+        .length,
+      1,
+      "The API should return the shortest2 consecutive award"
     );
 
     assert.equal(
@@ -207,7 +226,5 @@ describe("Integration tests", () => {
       1,
       "The API should return the longest consecutive award"
     );
-
-    await Promise.all(toDestroy.map(async (row) => await row.destroy()));
   });
 });

@@ -1,11 +1,5 @@
 import fetch, { RequestInit, Response } from "node-fetch";
-
-export type ConsecutiveAward = {
-  producer: string;
-  interval: number;
-  previousWin: number;
-  followingWin: number;
-};
+import { ConsecutiveAward } from "../src/types";
 
 export async function fetchHelper(
   url: string,

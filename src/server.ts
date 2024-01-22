@@ -12,7 +12,6 @@ app.use(routes);
 initializeDB(process.env.CSV_PATH).then((sequelize: Sequelize) => {
   // Make models and sequelize instance available to endpoints
   app.set("sequelize", sequelize);
-  app.set("models", sequelize.models);
 
   const port = process.env.PORT;
   app.listen(port, () => console.log(`The server is running on port ${port}`));

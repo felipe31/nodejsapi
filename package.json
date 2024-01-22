@@ -1,7 +1,6 @@
 {
   "name": "nodejsapi",
   "version": "1.0.0",
-  "main": "dist/src/server.js",
   "repository": "https://github.com/felipe31/nodejsapi",
   "author": "Felipe Soares <felipe31soares@gmail.com>",
   "license": "MIT",
@@ -24,6 +23,7 @@
     "typescript": "^5.3.3"
   },
   "scripts": {
+    "start": "tsc && node ./dist/src/server.js",
     "dev": "nodemon",
     "test": "jest"
   },

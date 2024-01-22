@@ -3,7 +3,7 @@ import { compareConsecutiveAward, fetchHelper } from "./helper";
 import * as assert from "assert";
 import { Movie, Producer, Studio, sequelize } from "../src/model";
 import { Model } from "sequelize";
-import { ConsecutiveAward } from "../src/types";
+import { ConsecutiveAward, ConsecutiveAwardGaps } from "../src/types";
 
 describe("Integration tests", () => {
   const baseURL = `http://localhost:${process.env.PORT}`;
@@ -45,8 +45,9 @@ describe("Integration tests", () => {
       "GET"
     );
 
+    assert.deepEqual(resp.status, 200);
     assert.deepEqual(
-      resp,
+      resp.data,
       {
         movie: {
           name: `Insert test ${rand}`,
@@ -77,8 +78,9 @@ describe("Integration tests", () => {
 
     let resp = await fetchHelper(movieEndpoint, {}, "GET");
 
+    assert.deepEqual(resp.status, 200);
     assert.deepEqual(
-      resp,
+      resp.data,
       {
         movie: {
           name: `Delete test ${rand}`,
@@ -95,8 +97,9 @@ describe("Integration tests", () => {
     studio.destroy();
     resp = await fetchHelper(movieEndpoint, {}, "GET");
 
+    assert.deepEqual(resp.status, 200);
     assert.deepEqual(
-      resp,
+      resp.data,
       {
         movie: {
           name: `Delete test ${rand}`,
@@ -111,7 +114,16 @@ describe("Integration tests", () => {
     movie.destroy();
     resp = await fetchHelper(movieEndpoint, {}, "GET");
 
-    assert.deepEqual(resp, { movie: null }, "Movie row was destroid");
+    assert.deepEqual(
+      resp.status,
+      404,
+      "Movie row was destroyed, it must return NOT FOUND!"
+    );
+    assert.deepEqual(
+      resp.data,
+      { message: "Movie not found!" },
+      "Movie row was destroyed"
+    );
   });
 
   it("Consecutive Awards", async () => {
@@ -200,28 +212,31 @@ describe("Integration tests", () => {
     const endpoint = `${baseURL}/consecutive-award-gaps`;
 
     const resp = (await fetchHelper(endpoint, {}, "GET")) as {
-      min: ConsecutiveAward[];
-      max: ConsecutiveAward[];
+      status: number;
+      data: ConsecutiveAwardGaps;
     };
-    assert.ok(resp?.max, "Field max must exist");
-    assert.ok(resp?.min, "Field min must exist");
+
+    assert.deepEqual(resp.status, 200);
+
+    assert.ok(resp.data.max, "Field max must exist");
+    assert.ok(resp.data.min, "Field min must exist");
 
     assert.equal(
-      resp.min.filter((award) => compareConsecutiveAward(award, shortest1))
+      resp.data.min.filter((award) => compareConsecutiveAward(award, shortest1))
         .length,
       1,
       "The API should return the shortest1 consecutive award"
     );
 
     assert.equal(
-      resp.min.filter((award) => compareConsecutiveAward(award, shortest2))
+      resp.data.min.filter((award) => compareConsecutiveAward(award, shortest2))
         .length,
       1,
       "The API should return the shortest2 consecutive award"
     );
 
     assert.equal(
-      resp.max.filter((award) => compareConsecutiveAward(award, longest))
+      resp.data.max.filter((award) => compareConsecutiveAward(award, longest))
         .length,
       1,
       "The API should return the longest consecutive award"

@@ -1,6 +1,7 @@
 import { Request, Response, Router } from "express";
 import { Movie, Producer, Studio } from "./model";
 import { ConsecutiveAward, ConsecutiveAwardGaps } from "./types";
+import { Sequelize } from "sequelize";
 
 export const routes = Router();
 
@@ -40,11 +41,11 @@ routes.get("/consecutive-award-gaps", async (req: Request, res: Response) => {
       model: Movie,
       attributes: ["name", "year"],
       where: { winner: true },
-      order: [["year", "ASC"]],
       through: {
         attributes: [],
       },
     },
+    order: [[Movie, "year", "ASC"]],
   });
 
   for (const producer of producers) {

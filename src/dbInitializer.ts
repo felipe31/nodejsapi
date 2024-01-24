@@ -21,16 +21,16 @@ export async function initializeDB(path?: string): Promise<Sequelize> {
     for (const row of rows) {
       const year = +row[0];
       const name = row[1];
-      const studioString = row[3];
+      const studioString = row[2];
       const producerString = row[3];
-      const winner = row[4];
+      const winner = row[4] === "yes";
 
       // Extract movie
       let movie = await Movie.findOne({
         where: {
           year,
           name,
-          winner: winner === "yes",
+          winner,
         },
       });
 
@@ -38,7 +38,7 @@ export async function initializeDB(path?: string): Promise<Sequelize> {
         movie = await Movie.create({
           year,
           name,
-          winner: winner === "yes",
+          winner,
         });
       }
 
@@ -83,7 +83,7 @@ export async function initializeDB(path?: string): Promise<Sequelize> {
  * @param {string} names
  * @return {*}
  */
-function splitNameString(names: string) {
+export function splitNameString(names: string) {
   const splittedNames: string[] = [];
   if (names) {
     const splitted = names.split(",");

@@ -1,9 +1,15 @@
 import "dotenv/config";
-import { compareConsecutiveAward, fetchHelper } from "./helper";
+import {
+  compareConsecutiveAward,
+  fetchHelper,
+  findConsecutiveAwardGaps,
+  rowsToProducers,
+} from "./helper";
 import * as assert from "assert";
 import { Movie, Producer, Studio, sequelize } from "../src/model";
 import { Model } from "sequelize";
 import { ConsecutiveAward, ConsecutiveAwardGaps } from "../src/types";
+import { parseCSV } from "../src/parser";
 
 describe("Integration tests", () => {
   const baseURL = `http://localhost:${process.env.PORT}`;
@@ -11,6 +17,10 @@ describe("Integration tests", () => {
   const toDestroy: Model[] = [];
   beforeAll(async () => {
     await sequelize.sync();
+  });
+
+  afterEach(async () => {
+    await Promise.all(toDestroy.map(async (row) => await row.destroy()));
   });
 
   afterAll(async () => {
@@ -126,7 +136,7 @@ describe("Integration tests", () => {
     );
   });
 
-  it("Consecutive Awards", async () => {
+  it("Consecutive Awards with dummy data", async () => {
     // Longest
     const movieLongest1 = await Movie.create({
       year: 1,
@@ -240,6 +250,42 @@ describe("Integration tests", () => {
         .length,
       1,
       "The API should return the longest consecutive award"
+    );
+  });
+
+  it("Consecutive Awards file checker", async () => {
+    const rows = await parseCSV(process.env.CSV_PATH);
+    const producers = rowsToProducers(rows);
+    const fileConsecutiveGaps = findConsecutiveAwardGaps(producers);
+
+    // Get endpoint data
+    const endpoint = `${baseURL}/consecutive-award-gaps`;
+
+    const resp = (await fetchHelper(endpoint, {}, "GET")) as {
+      status: number;
+      data: ConsecutiveAwardGaps;
+    };
+
+    assert.deepEqual(resp.status, 200);
+
+    assert.ok(resp.data.max, "Field max must exist");
+    assert.ok(resp.data.min, "Field min must exist");
+
+    function compare(a: ConsecutiveAward, b: ConsecutiveAward) {
+      return a.previousWin - b.previousWin;
+    }
+    console.log(resp.data);
+    console.log(fileConsecutiveGaps);
+
+    assert.deepEqual(
+      resp.data.max.sort(compare),
+      fileConsecutiveGaps.max.sort(compare),
+      "Longest consecutive gaps from file and API do not match!"
+    );
+    assert.deepEqual(
+      resp.data.min.sort(compare),
+      fileConsecutiveGaps.min.sort(compare),
+      "Shortest consecutive gaps from file and API do not match!"
     );
   });
 });
